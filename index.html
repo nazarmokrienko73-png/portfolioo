@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мокрієнко Назарій — Frontend Developer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111;
+    --border: #1e1e1e;
+    --text: #c8c8c8;
+    --muted: #555;
+    --heading: #f0f0f0;
+    --accent: #b4ff47;
+    --accent-dim: rgba(180,255,71,.1);
+    --font-display: 'Syne', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--font-mono); font-size: 14px; line-height: 1.7;
+    cursor: none; overflow-x: hidden;
+  }
+
+  /* CURSOR */
+  .cursor { position:fixed; top:0; left:0; z-index:9999; pointer-events:none; width:8px; height:8px; background:var(--accent); border-radius:50%; transform:translate(-50%,-50%); transition:transform .1s ease, width .25s ease, height .25s ease, opacity .25s ease; }
+  .cursor-ring { position:fixed; top:0; left:0; z-index:9998; pointer-events:none; width:32px; height:32px; border:1px solid var(--accent); border-radius:50%; transform:translate(-50%,-50%); transition:transform .18s ease, width .25s ease, height .25s ease, opacity .25s ease; opacity:.4; }
+  body:has(a:hover) .cursor, body:has(button:hover) .cursor { width:14px; height:14px; }
+  body:has(a:hover) .cursor-ring, body:has(button:hover) .cursor-ring { width:48px; height:48px; opacity:.2; }
+
+  /* NOISE */
+  body::before { content:''; position:fixed; inset:0; z-index:0; pointer-events:none; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E"); opacity:.025; }
+
+  /* NAV */
+  nav { position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:20px 48px; border-bottom:1px solid transparent; transition:border-color .3s,background .3s; }
+  nav.scrolled { border-color:var(--border); background:rgba(10,10,10,.9); backdrop-filter:blur(12px); }
+
+  .nav-logo { font-family:var(--font-display); font-size:1.15rem; color:var(--heading); text-decoration:none; letter-spacing:.02em; }
+  .nav-logo .dot { color:var(--accent); }
+
+  .nav-center { display:flex; gap:32px; list-style:none; }
+  .nav-center a { color:var(--muted); text-decoration:none; font-size:.75rem; letter-spacing:.12em; text-transform:uppercase; transition:color .2s; }
+  .nav-center a:hover { color:var(--accent); }
+
+  .nav-right { display:flex; align-items:center; gap:16px; }
+
+  /* LANG SWITCHER */
+  .lang-switcher { display:flex; gap:2px; border:1px solid var(--border); border-radius:3px; overflow:hidden; }
+  .lang-btn {
+    background:transparent; border:none; cursor:none;
+    font-family:var(--font-mono); font-size:.65rem; font-weight:500;
+    letter-spacing:.1em; text-transform:uppercase;
+    color:var(--muted); padding:6px 10px;
+    transition:background .2s, color .2s;
+  }
+  .lang-btn:hover { color:var(--text); }
+  .lang-btn.active { background:var(--accent); color:#0a0a0a; }
+
+  .nav-socials { display:flex; gap:6px; }
+  .nav-social-btn { display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:3px; text-decoration:none; color:var(--muted); border:1px solid var(--border); transition:all .2s; }
+  .nav-social-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+  /* SECTIONS */
+  section { position:relative; z-index:1; }
+
+  /* HERO */
+  .hero { min-height:100vh; display:flex; flex-direction:column; justify-content:flex-end; padding:0 48px 64px; border-bottom:1px solid var(--border); }
+  .hero-tag { font-size:.7rem; letter-spacing:.16em; text-transform:uppercase; color:var(--accent); margin-bottom:20px; opacity:0; animation:fadeUp .6s .2s forwards; }
+  .hero-name { font-family:var(--font-display); font-size:clamp(3.5rem,10vw,9rem); font-weight:800; color:var(--heading); line-height:.95; letter-spacing:-.02em; opacity:0; animation:fadeUp .7s .35s forwards; }
+  .hero-name em { color:var(--accent); font-style:normal; }
+  .hero-sub { margin-top:28px; max-width:460px; font-size:.85rem; color:var(--muted); line-height:1.7; opacity:0; animation:fadeUp .6s .55s forwards; }
+  .hero-cta { margin-top:40px; display:flex; gap:16px; flex-wrap:wrap; opacity:0; animation:fadeUp .6s .7s forwards; }
+
+  .btn { display:inline-block; text-decoration:none; cursor:none; font-family:var(--font-mono); font-size:.75rem; letter-spacing:.1em; text-transform:uppercase; padding:12px 28px; border-radius:2px; transition:all .2s; }
+  .btn-primary { background:var(--accent); color:#0a0a0a; font-weight:500; }
+  .btn-primary:hover { background:#fff; }
+  .btn-ghost { border:1px solid var(--border); color:var(--muted); }
+  .btn-ghost:hover { border-color:var(--accent); color:var(--accent); }
+
+  .hero-scroll { position:absolute; bottom:64px; right:48px; display:flex; flex-direction:column; align-items:center; gap:8px; opacity:0; animation:fadeUp .6s .9s forwards; }
+  .hero-scroll span { font-size:.65rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); writing-mode:vertical-rl; }
+  .hero-scroll-line { width:1px; height:60px; background:linear-gradient(to bottom,var(--accent),transparent); }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+  .reveal { opacity:0; transform:translateY(28px); transition:opacity .7s ease,transform .7s ease; }
+  .reveal.visible { opacity:1; transform:translateY(0); }
+
+  /* ABOUT */
+  .about { display:grid; grid-template-columns:1fr 1fr; padding:100px 48px; gap:80px; border-bottom:1px solid var(--border); }
+  .section-label { font-size:.65rem; letter-spacing:.18em; text-transform:uppercase; color:var(--accent); margin-bottom:32px; display:flex; align-items:center; gap:12px; }
+  .section-label::before { content:''; display:block; width:24px; height:1px; background:var(--accent); }
+  .about-text h2 { font-family:var(--font-display); font-size:clamp(1.8rem,4vw,2.8rem); font-weight:700; color:var(--heading); line-height:1.15; margin-bottom:24px; letter-spacing:-.01em; }
+  .about-text p { color:var(--muted); margin-bottom:16px; font-size:.85rem; }
+  .about-text p strong { color:var(--text); font-weight:500; }
+  .stats { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--border); border:1px solid var(--border); margin-top:48px; }
+  .stat { background:var(--bg); padding:28px 24px; transition:background .2s; }
+  .stat:hover { background:var(--surface); }
+  .stat-num { font-family:var(--font-display); font-size:2.4rem; font-weight:800; color:var(--heading); line-height:1; }
+  .stat-num span { color:var(--accent); }
+  .stat-label { font-size:.7rem; color:var(--muted); margin-top:6px; letter-spacing:.08em; text-transform:uppercase; }
+  .skills-list { display:flex; flex-direction:column; gap:20px; padding-top:8px; }
+  .skill-head { display:flex; justify-content:space-between; margin-bottom:8px; }
+  .skill-name { font-size:.75rem; letter-spacing:.08em; text-transform:uppercase; color:var(--text); }
+  .skill-pct { font-size:.7rem; color:var(--accent); }
+  .skill-bar { height:1px; background:var(--border); position:relative; }
+  .skill-fill { position:absolute; top:0; left:0; height:100%; background:var(--accent); width:0; transition:width 1.2s cubic-bezier(.16,1,.3,1); }
+
+  /* PROJECTS */
+  .projects { padding:100px 48px; border-bottom:1px solid var(--border); }
+  .projects-header { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:56px; }
+  .projects-header h2 { font-family:var(--font-display); font-size:clamp(1.8rem,4vw,2.8rem); font-weight:700; color:var(--heading); letter-spacing:-.01em; }
+  .projects-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--border); border:1px solid var(--border); }
+  .project-card { background:var(--bg); transition:background .2s; position:relative; overflow:hidden; display:flex; flex-direction:column; }
+  .project-card:hover { background:var(--surface); }
+  .project-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--accent); transform:scaleX(0); transform-origin:left; transition:transform .3s; }
+  .project-card:hover::after { transform:scaleX(1); }
+
+  .project-preview { width:100%; height:200px; position:relative; overflow:hidden; background:#0a0a12; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .browser-bar { position:absolute; top:0; left:0; right:0; z-index:10; height:28px; background:rgba(10,10,10,.95); display:flex; align-items:center; gap:6px; padding:0 10px; border-bottom:1px solid var(--border); }
+  .browser-dot { width:8px; height:8px; border-radius:50%; }
+  .bd-red { background:#ff5f57; } .bd-yellow { background:#ffbd2e; } .bd-green { background:#28c840; }
+  .browser-url { flex:1; background:rgba(255,255,255,.04); border-radius:3px; height:16px; margin:0 6px; display:flex; align-items:center; padding:0 8px; font-size:.58rem; color:var(--muted); overflow:hidden; white-space:nowrap; }
+  .project-screenshot { position:absolute; top:28px; left:0; right:0; bottom:0; width:100%; height:calc(100% - 28px); object-fit:cover; object-position:top; transition:transform 6s ease; }
+  .project-card:hover .project-screenshot { transform:translateY(-30%); }
+  .project-preview-placeholder { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; }
+  .placeholder-text { font-size:.78rem; font-weight:500; color:rgba(255,255,255,.6); letter-spacing:.06em; text-transform:uppercase; }
+
+  .project-body { padding:32px; flex:1; display:flex; flex-direction:column; }
+  .project-num { font-size:.65rem; color:var(--muted); letter-spacing:.12em; margin-bottom:12px; }
+  .project-title { font-family:var(--font-display); font-size:1.15rem; font-weight:700; color:var(--heading); margin-bottom:10px; letter-spacing:-.01em; }
+  .project-desc { font-size:.82rem; color:var(--muted); line-height:1.65; margin-bottom:20px; flex:1; }
+  .project-footer { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .project-tags { display:flex; gap:6px; flex-wrap:wrap; }
+  .tag { font-size:.62rem; letter-spacing:.08em; text-transform:uppercase; padding:4px 10px; border:1px solid var(--border); border-radius:2px; color:var(--muted); }
+  .project-link { font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent); padding-bottom:2px; transition:opacity .2s; white-space:nowrap; }
+  .project-link:hover { opacity:.7; }
+  .cta-placeholder { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; background:var(--accent-dim); cursor:none; }
+  .cta-icon { font-family:var(--font-display); font-size:2.5rem; font-weight:800; color:var(--accent); line-height:1; }
+  .cta-text { font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; color:var(--accent); opacity:.7; }
+
+  /* CONTACT */
+  .contact { display:grid; grid-template-columns:1fr; padding:100px 48px; gap:80px; align-items:start; max-width: 680px; }
+  .contact h2 { font-family:var(--font-display); font-size:clamp(2rem,5vw,3.5rem); font-weight:700; color:var(--heading); line-height:1.05; letter-spacing:-.02em; margin-bottom:20px; }
+  .contact h2 em { font-style:normal; color:var(--accent); }
+  .contact > div > p { font-size:.85rem; color:var(--muted); margin-bottom:40px; }
+  .contact-list { display:flex; flex-direction:column; gap:4px; }
+  .contact-reveal-btn { display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:2px; background:transparent; border:none; cursor:none; color:var(--text); width:100%; text-align:left; transition:background .2s; font-family:var(--font-mono); }
+  .contact-reveal-btn:hover { background:var(--surface); }
+  .contact-icon { width:38px; height:38px; border:1px solid var(--border); border-radius:2px; display:flex; align-items:center; justify-content:center; font-size:.75rem; font-weight:600; flex-shrink:0; letter-spacing:.04em; transition:border-color .2s; color:var(--muted); }
+  .contact-reveal-btn:hover .contact-icon { border-color:var(--accent); color:var(--accent); }
+  .contact-label { font-size:.62rem; color:var(--muted); display:block; font-weight:500; text-transform:uppercase; letter-spacing:.1em; }
+  .contact-value { font-size:.85rem; color:var(--text); }
+  .reveal-arrow { margin-left:auto; font-size:1rem; color:var(--muted); transition:transform .2s,color .2s; }
+  .contact-reveal-btn:hover .reveal-arrow { transform:translateX(3px); color:var(--accent); }
+  .contact-reveal-btn.revealed { background:var(--accent-dim); }
+  .contact-reveal-btn.revealed .reveal-arrow { display:none; }
+  .contact-form { display:flex; flex-direction:column; gap:16px; }
+  .form-group { display:flex; flex-direction:column; gap:6px; }
+  .form-group label { font-size:.65rem; font-weight:500; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; }
+  .form-group input, .form-group textarea { background:var(--surface); border:1px solid var(--border); color:var(--text); font-family:var(--font-mono); font-size:.85rem; padding:12px 16px; border-radius:2px; outline:none; resize:none; transition:border-color .2s; }
+  .form-group input:focus, .form-group textarea:focus { border-color:var(--accent); }
+  .form-group textarea { min-height:120px; }
+  .btn-submit { font-family:var(--font-mono); font-size:.75rem; font-weight:500; letter-spacing:.1em; text-transform:uppercase; padding:13px 32px; border-radius:2px; background:var(--accent); color:#0a0a0a; border:none; cursor:none; align-self:flex-start; transition:background .2s; }
+  .btn-submit:hover { background:#fff; }
+
+  /* FOOTER */
+  footer { border-top:1px solid var(--border); padding:24px 48px; display:flex; align-items:center; justify-content:space-between; font-size:.75rem; color:var(--muted); position:relative; z-index:1; }
+  footer a { color:var(--muted); text-decoration:none; transition:color .2s; }
+  footer a:hover { color:var(--accent); }
+
+  /* MOBILE */
+  @media (max-width:900px) {
+    body { cursor:auto; }
+    .cursor, .cursor-ring { display:none; }
+    nav { padding:14px 20px; flex-wrap:wrap; gap:10px; }
+    .nav-center { display:none; }
+    .hero { padding:0 20px 48px; }
+    .hero-scroll { display:none; }
+    .about, .contact { grid-template-columns:1fr; gap:48px; padding:64px 20px; }
+    .projects { padding:64px 20px; }
+    .projects-grid { grid-template-columns:1fr; }
+    .projects-header { flex-direction:column; align-items:flex-start; gap:16px; }
+    footer { flex-direction:column; gap:8px; text-align:center; padding:20px; }
+    .nav-right { gap:10px; }
+    .lang-btn { padding:5px 8px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="nav-logo">web<span class="dot">.</span>dev</a>
+  <ul class="nav-center">
+    <li><a href="#about" data-i18n="nav_about">Про мене</a></li>
+    <li><a href="#projects" data-i18n="nav_projects">Проекти</a></li>
+    <li><a href="#contact" data-i18n="nav_contact">Контакти</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="lang-switcher">
+      <button class="lang-btn active" data-lang="uk">UA</button>
+      <button class="lang-btn" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="de">DE</button>
+      <button class="lang-btn" data-lang="pl">PL</button>
+    </div>
+    <div class="nav-socials">
+      <a href="tel:+380993285393" class="nav-social-btn" title="Phone">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8a19.79 19.79 0 01-3.07-8.67A2 2 0 012 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+      </a>
+      <a href="https://instagram.com/nazarmokrienko10" target="_blank" class="nav-social-btn" title="Instagram">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+      </a>
+      <a href="https://t.me/nazariy_m17" target="_blank" class="nav-social-btn" title="Telegram">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <p class="hero-tag" data-i18n="hero_tag">Frontend Developer — Україна</p>
+  <h1 class="hero-name" data-i18n="hero_name">Мокрієнко<br><em>Назарій</em></h1>
+  <p class="hero-sub" data-i18n="hero_sub">Створюю швидкі, красиві та зручні вебсайти.<br>Від ідеї до готового продукту — під ключ.</p>
+  <div class="hero-cta">
+    <a href="#projects" class="btn btn-primary" data-i18n="hero_cta1">Мої роботи</a>
+    <a href="#contact" class="btn btn-ghost" data-i18n="hero_cta2">Написати</a>
+  </div>
+  <div class="hero-scroll"><span data-i18n="scroll">Scroll</span><div class="hero-scroll-line"></div></div>
+</section>
+
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div class="reveal">
+    <p class="section-label" data-i18n="about_label">Про мене</p>
+    <div class="about-text">
+      <h2 data-i18n="about_h2">Роблю сайти, якими хочеться користуватись</h2>
+      <p data-i18n="about_p1">Привіт! Мене звати <strong>Мокрієнко Назарій</strong>. Я Frontend-розробник з досвідом. Спеціалізуюсь на створенні сайтів та вебзастосунків, які поєднують чистий код і сильний дизайн.</p>
+      <p data-i18n="about_p2">Працюю з малим бізнесом, стартапами та агенціями. Кожен проект — це індивідуальне рішення, а не шаблон.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-num">24<span>+</span></div><div class="stat-label" data-i18n="stat_projects">Проектів</div></div>
+      <div class="stat"><div class="stat-num">3<span>р</span></div><div class="stat-label" data-i18n="stat_exp">Досвіду</div></div>
+      <div class="stat"><div class="stat-num">18<span>+</span></div><div class="stat-label" data-i18n="stat_clients">Клієнтів</div></div>
+      <div class="stat"><div class="stat-num">100<span>%</span></div><div class="stat-label" data-i18n="stat_happy">Задоволені</div></div>
+    </div>
+  </div>
+  <div class="reveal" style="transition-delay:.15s">
+    <p class="section-label" data-i18n="skills_label">Навички</p>
+    <div class="skills-list">
+      <div class="skill-item"><div class="skill-head"><span class="skill-name">HTML / CSS</span><span class="skill-pct">95%</span></div><div class="skill-bar"><div class="skill-fill" data-width="95"></div></div></div>
+      <div class="skill-item"><div class="skill-head"><span class="skill-name">JavaScript</span><span class="skill-pct">85%</span></div><div class="skill-bar"><div class="skill-fill" data-width="85"></div></div></div>
+      <div class="skill-item"><div class="skill-head"><span class="skill-name">React</span><span class="skill-pct">80%</span></div><div class="skill-bar"><div class="skill-fill" data-width="80"></div></div></div>
+      <div class="skill-item"><div class="skill-head"><span class="skill-name">Tilda / Webflow</span><span class="skill-pct">90%</span></div><div class="skill-bar"><div class="skill-fill" data-width="90"></div></div></div>
+      <div class="skill-item"><div class="skill-head"><span class="skill-name">Figma</span><span class="skill-pct">75%</span></div><div class="skill-bar"><div class="skill-fill" data-width="75"></div></div></div>
+      <div class="skill-item"><div class="skill-head"><span class="skill-name">Git / Vite</span><span class="skill-pct">80%</span></div><div class="skill-bar"><div class="skill-fill" data-width="80"></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section class="projects" id="projects">
+  <div class="projects-header reveal">
+    <div>
+      <p class="section-label" data-i18n="projects_label">Проекти</p>
+      <h2 data-i18n="projects_h2">Вибрані роботи</h2>
+    </div>
+    <a href="#contact" class="btn btn-ghost" data-i18n="projects_cta">Замовити проект</a>
+  </div>
+  <div class="projects-grid reveal" style="transition-delay:.1s">
+
+    <div class="project-card">
+      <div class="project-preview">
+        <div class="browser-bar">
+          <div class="browser-dot bd-red"></div><div class="browser-dot bd-yellow"></div><div class="browser-dot bd-green"></div>
+          <div class="browser-url">nazarmokrienko73-png.github.io/fitnesssss/</div>
+        </div>
+        <svg viewBox="0 0 400 172" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:28px;left:0;right:0;width:100%;height:calc(100% - 28px)">
+          <rect width="400" height="172" fill="#1a1a2e"/>
+          <ellipse cx="200" cy="86" rx="60" ry="60" fill="#b4ff47" opacity="0.07"/>
+          <!-- lotus person icon -->
+          <g transform="translate(164,30)" stroke="#b4ff47" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-width="3.5">
+            <circle cx="36" cy="14" r="11"/>
+            <path d="M36 25 L36 55"/>
+            <path d="M36 35 C22 35 13 44 10 55"/>
+            <path d="M36 35 C50 35 59 44 62 55"/>
+            <path d="M36 55 C24 58 14 56 7 62"/>
+            <path d="M36 55 C48 58 58 56 65 62"/>
+            <circle cx="10" cy="55" r="3" fill="#b4ff47" opacity="0.6"/>
+            <circle cx="62" cy="55" r="3" fill="#b4ff47" opacity="0.6"/>
+          </g>
+        </svg>
+      </div>
+      <div class="project-body">
+        <p class="project-num">01</p>
+        <h3 class="project-title" data-i18n="proj1_title">Масаж сайт</h3>
+        <p class="project-desc" data-i18n="proj1_desc">Сучасний лендінг для масажного салону. Адаптивний дизайн, анімації, секції з послугами та формою запису.</p>
+        <div class="project-footer">
+          <div class="project-tags"><span class="tag">HTML/CSS</span><span class="tag">JavaScript</span></div>
+          <a href="https://nazarmokrienko73-png.github.io/fitnesssss/" target="_blank" class="project-link" data-i18n="view">Переглянути</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <div class="project-preview">
+        <div class="browser-bar">
+          <div class="browser-dot bd-red"></div><div class="browser-dot bd-yellow"></div><div class="browser-dot bd-green"></div>
+          <div class="browser-url">nazarmokrienko73-png.github.io/lawyer/</div>
+        </div>
+        <svg viewBox="0 0 400 172" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:28px;left:0;right:0;width:100%;height:calc(100% - 28px)">
+          <rect width="400" height="172" fill="#0e1a0e"/>
+          <ellipse cx="200" cy="86" rx="60" ry="60" fill="#b4ff47" opacity="0.07"/>
+          <!-- scales of justice -->
+          <g transform="translate(162,22)" stroke="#b4ff47" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-width="3.5">
+            <!-- pole -->
+            <line x1="38" y1="8" x2="38" y2="115"/>
+            <!-- horizontal bar -->
+            <line x1="4" y1="28" x2="72" y2="28"/>
+            <!-- top knob -->
+            <circle cx="38" cy="8" r="5" fill="#b4ff47" opacity="0.7"/>
+            <!-- left chain -->
+            <line x1="10" y1="28" x2="10" y2="66"/>
+            <!-- right chain -->
+            <line x1="66" y1="28" x2="66" y2="66"/>
+            <!-- left pan arc -->
+            <path d="M0 66 Q10 80 20 66"/>
+            <!-- right pan arc -->
+            <path d="M56 66 Q66 80 76 66"/>
+            <!-- base -->
+            <line x1="20" y1="115" x2="56" y2="115"/>
+          </g>
+        </svg>
+      </div>
+      <div class="project-body">
+        <p class="project-num">02</p>
+        <h3 class="project-title" data-i18n="proj2_title">Юридична компанія</h3>
+        <p class="project-desc" data-i18n="proj2_desc">Корпоративний сайт для юридичної фірми. Строгий дизайн, блок послуг, контактна форма.</p>
+        <div class="project-footer">
+          <div class="project-tags"><span class="tag">HTML/CSS</span><span class="tag">JavaScript</span></div>
+          <a href="https://nazarmokrienko73-png.github.io/lawyer/" target="_blank" class="project-link" data-i18n="view">Переглянути</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <div class="project-preview">
+        <div class="browser-bar">
+          <div class="browser-dot bd-red"></div><div class="browser-dot bd-yellow"></div><div class="browser-dot bd-green"></div>
+          <div class="browser-url">nazarmokrienko73-png.github.io/fitnessss/</div>
+        </div>
+        <svg viewBox="0 0 400 172" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:28px;left:0;right:0;width:100%;height:calc(100% - 28px)">
+          <rect width="400" height="172" fill="#1a0a00"/>
+          <ellipse cx="200" cy="86" rx="60" ry="60" fill="#b4ff47" opacity="0.07"/>
+          <!-- dumbbell icon -->
+          <g transform="translate(90,57)" stroke="#b4ff47" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-width="3.5">
+            <!-- left outer plate -->
+            <rect x="0" y="10" width="16" height="38" rx="4" fill="#b4ff47" opacity="0.85" stroke="none"/>
+            <!-- left inner plate -->
+            <rect x="16" y="17" width="10" height="24" rx="3" fill="#b4ff47" opacity="0.6" stroke="none"/>
+            <!-- bar -->
+            <rect x="26" y="24" width="168" height="10" rx="3" fill="#b4ff47" opacity="0.35" stroke="none"/>
+            <!-- grip lines -->
+            <line x1="100" y1="26" x2="100" y2="32" stroke="#1a0a00" stroke-width="2"/>
+            <line x1="110" y1="26" x2="110" y2="32" stroke="#1a0a00" stroke-width="2"/>
+            <line x1="120" y1="26" x2="120" y2="32" stroke="#1a0a00" stroke-width="2"/>
+            <!-- right inner plate -->
+            <rect x="194" y="17" width="10" height="24" rx="3" fill="#b4ff47" opacity="0.6" stroke="none"/>
+            <!-- right outer plate -->
+            <rect x="204" y="10" width="16" height="38" rx="4" fill="#b4ff47" opacity="0.85" stroke="none"/>
+          </g>
+        </svg>
+      </div>
+      <div class="project-body">
+        <p class="project-num">03</p>
+        <h3 class="project-title" data-i18n="proj3_title">Фітнес</h3>
+        <p class="project-desc" data-i18n="proj3_desc">Лендінг для фітнес-клубу з покращеним UX, новими секціями та мобільною адаптацією.</p>
+        <div class="project-footer">
+          <div class="project-tags"><span class="tag">HTML/CSS</span><span class="tag">JavaScript</span><span class="tag">Figma</span></div>
+          <a href="https://nazarmokrienko73-png.github.io/fitnessss/" target="_blank" class="project-link" data-i18n="view">Переглянути</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="project-card">
+      <div class="project-preview">
+        <div class="cta-placeholder" onclick="document.querySelector('#contact').scrollIntoView({behavior:'smooth'})">
+          <div class="cta-icon">+</div>
+          <div class="cta-text" data-i18n="proj4_cta">Ваш проект тут</div>
+        </div>
+      </div>
+      <div class="project-body">
+        <p class="project-num">04</p>
+        <h3 class="project-title" data-i18n="proj4_title">Ваш наступний проект</h3>
+        <p class="project-desc" data-i18n="proj4_desc">Готовий реалізувати ваш проект — від лендінгу до повноцінного вебзастосунку. Пишіть!</p>
+        <div class="project-footer">
+          <div class="project-tags"><span class="tag">React</span><span class="tag">Webflow</span><span class="tag">Tilda</span></div>
+          <a href="#contact" class="project-link" data-i18n="order">Замовити</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="reveal">
+    <p class="section-label" data-i18n="contact_label">Контакти</p>
+    <h2 data-i18n="contact_h2">Маєш<br>проект? <em>Пишіть.</em></h2>
+    <p data-i18n="contact_sub">Відповідаю протягом 24 годин. Обговоримо задачу і розрахуємо вартість безкоштовно.</p>
+    <div class="contact-list">
+      <div>
+        <button class="contact-reveal-btn" onclick="revealContact(this,'tel:+380993285393','+38 (099) 328-53-93','TEL')">
+          <div class="contact-icon">TEL</div>
+          <div><span class="contact-label" data-i18n="c_phone">Телефон</span><span class="contact-value" data-i18n="c_show_phone">Показати номер</span></div>
+          <span class="reveal-arrow">›</span>
+        </button>
+      </div>
+      <div>
+        <button class="contact-reveal-btn" onclick="revealContact(this,'https://instagram.com/nazarmokrienko10','@nazarmokrienko10','IG')">
+          <div class="contact-icon">IG</div>
+          <div><span class="contact-label">Instagram</span><span class="contact-value" data-i18n="c_show_ig">Показати Instagram</span></div>
+          <span class="reveal-arrow">›</span>
+        </button>
+      </div>
+      <div>
+        <button class="contact-reveal-btn" onclick="revealContact(this,'https://t.me/nazariy_m17','@nazariy_m17','TG')">
+          <div class="contact-icon">TG</div>
+          <div><span class="contact-label">Telegram</span><span class="contact-value" data-i18n="c_show_tg">Показати Telegram</span></div>
+          <span class="reveal-arrow">›</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span>© 2026 Мокрієнко Назарій</span>
+  <span>Frontend Developer</span>
+  <a href="#" data-i18n="footer_top">Нагору</a>
+</footer>
+
+<script>
+// ── TRANSLATIONS ──
+var T = {
+  uk: {
+    nav_about: 'Про мене', nav_projects: 'Проекти', nav_contact: 'Контакти',
+    hero_tag: 'Frontend Developer — Україна',
+    hero_name: 'Мокрієнко<br><em>Назарій</em>',
+    hero_sub: 'Створюю швидкі, красиві та зручні вебсайти.<br>Від ідеї до готового продукту — під ключ.',
+    hero_cta1: 'Мої роботи', hero_cta2: 'Написати', scroll: 'Scroll',
+    about_label: 'Про мене',
+    about_h2: 'Роблю сайти, якими хочеться користуватись',
+    about_p1: 'Привіт! Мене звати <strong>Мокрієнко Назарій</strong>. Я Frontend-розробник з досвідом. Спеціалізуюсь на створенні сайтів та вебзастосунків, які поєднують чистий код і сильний дизайн.',
+    about_p2: 'Працюю з малим бізнесом, стартапами та агенціями. Кожен проект — це індивідуальне рішення, а не шаблон.',
+    stat_projects: 'Проектів', stat_exp: 'Досвіду', stat_clients: 'Клієнтів', stat_happy: 'Задоволені',
+    skills_label: 'Навички',
+    projects_label: 'Проекти', projects_h2: 'Вибрані роботи', projects_cta: 'Замовити проект',
+    proj1_title: 'Масаж сайт', proj1_desc: 'Сучасний лендінг для масажного салону. Адаптивний дизайн, анімації, секції з послугами та формою запису.',
+    proj2_title: 'Юридична компанія', proj2_desc: 'Корпоративний сайт для юридичної фірми. Строгий дизайн, блок послуг, контактна форма.',
+    proj3_title: 'Фітнес', proj3_desc: 'Лендінг для фітнес-клубу з покращеним UX, новими секціями та мобільною адаптацією.',
+    proj4_title: 'Ваш наступний проект', proj4_desc: 'Готовий реалізувати ваш проект — від лендінгу до повноцінного вебзастосунку. Пишіть!', proj4_cta: 'Ваш проект тут',
+    view: 'Переглянути', order: 'Замовити',
+    contact_label: 'Контакти', contact_h2: 'Маєш<br>проект? <em>Пишіть.</em>',
+    contact_sub: 'Відповідаю протягом 24 годин. Обговоримо задачу і розрахуємо вартість безкоштовно.',
+    c_phone: 'Телефон', c_show_phone: 'Показати номер', c_show_ig: 'Показати Instagram', c_show_tg: 'Показати Telegram',
+    form_label: 'Написати', form_name: "Ваше ім'я", form_msg: 'Повідомлення', form_send: 'Надіслати →',
+    ph_name: 'Іван Іванов', ph_msg: 'Розкажіть про ваш проект...',
+    form_sent: 'Надіслано', footer_top: 'Нагору'
+  },
+  en: {
+    nav_about: 'About', nav_projects: 'Projects', nav_contact: 'Contact',
+    hero_tag: 'Frontend Developer — Ukraine',
+    hero_name: 'Mokrienko<br><em>Nazariy</em>',
+    hero_sub: 'I build fast, beautiful and user-friendly websites.<br>From idea to finished product — turnkey.',
+    hero_cta1: 'My works', hero_cta2: 'Contact me', scroll: 'Scroll',
+    about_label: 'About me',
+    about_h2: 'I build websites people love to use',
+    about_p1: 'Hi! My name is <strong>Nazariy Mokrienko</strong>. I\'m an experienced Frontend developer specializing in websites and web apps that combine clean code with strong design.',
+    about_p2: 'I work with small businesses, startups and agencies. Every project is a unique solution, not a template.',
+    stat_projects: 'Projects', stat_exp: 'Years exp.', stat_clients: 'Clients', stat_happy: 'Satisfied',
+    skills_label: 'Skills',
+    projects_label: 'Projects', projects_h2: 'Selected works', projects_cta: 'Order a project',
+    proj1_title: 'Massage site', proj1_desc: 'Modern landing page for a massage salon. Responsive design, animations, services section and booking form.',
+    proj2_title: 'Law firm', proj2_desc: 'Corporate website for a law firm. Clean design, services block, contact form.',
+    proj3_title: 'Fitness', proj3_desc: 'Landing page for a fitness club with improved UX, new sections and mobile adaptation.',
+    proj4_title: 'Your next project', proj4_desc: 'Ready to bring your project to life — from a landing page to a full web app. Let\'s talk!', proj4_cta: 'Your project here',
+    view: 'View', order: 'Order',
+    contact_label: 'Contact', contact_h2: 'Have a<br>project? <em>Write.</em>',
+    contact_sub: 'I reply within 24 hours. We\'ll discuss your task and estimate the cost for free.',
+    c_phone: 'Phone', c_show_phone: 'Show number', c_show_ig: 'Show Instagram', c_show_tg: 'Show Telegram',
+    form_label: 'Write', form_name: 'Your name', form_msg: 'Message', form_send: 'Send →',
+    ph_name: 'John Smith', ph_msg: 'Tell me about your project...',
+    form_sent: 'Sent', footer_top: 'Back to top'
+  },
+  de: {
+    nav_about: 'Über mich', nav_projects: 'Projekte', nav_contact: 'Kontakt',
+    hero_tag: 'Frontend Developer — Ukraine',
+    hero_name: 'Mokrienko<br><em>Nazariy</em>',
+    hero_sub: 'Ich erstelle schnelle, schöne und nutzerfreundliche Websites.<br>Von der Idee bis zum fertigen Produkt — schlüsselfertig.',
+    hero_cta1: 'Meine Arbeiten', hero_cta2: 'Schreiben', scroll: 'Scroll',
+    about_label: 'Über mich',
+    about_h2: 'Ich baue Websites, die man gerne nutzt',
+    about_p1: 'Hallo! Mein Name ist <strong>Nazariy Mokrienko</strong>. Ich bin ein erfahrener Frontend-Entwickler, spezialisiert auf Websites und Web-Apps, die sauberen Code mit starkem Design verbinden.',
+    about_p2: 'Ich arbeite mit Kleinunternehmen, Startups und Agenturen. Jedes Projekt ist eine individuelle Lösung, kein Template.',
+    stat_projects: 'Projekte', stat_exp: 'Jahre Erfahrung', stat_clients: 'Kunden', stat_happy: 'Zufrieden',
+    skills_label: 'Fähigkeiten',
+    projects_label: 'Projekte', projects_h2: 'Ausgewählte Arbeiten', projects_cta: 'Projekt bestellen',
+    proj1_title: 'Massage-Website', proj1_desc: 'Modernes Landing Page für einen Massagesalon. Responsives Design, Animationen, Dienstleistungsbereich und Buchungsformular.',
+    proj2_title: 'Anwaltskanzlei', proj2_desc: 'Unternehmenswebsite für eine Anwaltskanzlei. Klares Design, Leistungsblock, Kontaktformular.',
+    proj3_title: 'Fitness', proj3_desc: 'Landing Page für ein Fitnessstudio mit verbesserter UX, neuen Sektionen und mobiler Anpassung.',
+    proj4_title: 'Ihr nächstes Projekt', proj4_desc: 'Bereit, Ihr Projekt umzusetzen — vom Landing Page bis zur vollwertigen Web-App. Schreiben Sie!', proj4_cta: 'Ihr Projekt hier',
+    view: 'Ansehen', order: 'Bestellen',
+    contact_label: 'Kontakt', contact_h2: 'Haben Sie ein<br>Projekt? <em>Schreiben.</em>',
+    contact_sub: 'Ich antworte innerhalb von 24 Stunden. Wir besprechen die Aufgabe und kalkulieren kostenlos.',
+    c_phone: 'Telefon', c_show_phone: 'Nummer anzeigen', c_show_ig: 'Instagram anzeigen', c_show_tg: 'Telegram anzeigen',
+    form_label: 'Schreiben', form_name: 'Ihr Name', form_msg: 'Nachricht', form_send: 'Senden →',
+    ph_name: 'Max Mustermann', ph_msg: 'Erzählen Sie von Ihrem Projekt...',
+    form_sent: 'Gesendet', footer_top: 'Nach oben'
+  },
+  pl: {
+    nav_about: 'O mnie', nav_projects: 'Projekty', nav_contact: 'Kontakt',
+    hero_tag: 'Frontend Developer — Ukraina',
+    hero_name: 'Mokrienko<br><em>Nazariy</em>',
+    hero_sub: 'Tworzę szybkie, piękne i przyjazne dla użytkownika strony.<br>Od pomysłu do gotowego produktu — pod klucz.',
+    hero_cta1: 'Moje prace', hero_cta2: 'Napisz do mnie', scroll: 'Scroll',
+    about_label: 'O mnie',
+    about_h2: 'Tworzę strony, z których chce się korzystać',
+    about_p1: 'Cześć! Nazywam się <strong>Nazariy Mokrienko</strong>. Jestem doświadczonym Frontend developerem specjalizującym się w stronach i aplikacjach webowych łączących czysty kod z mocnym designem.',
+    about_p2: 'Pracuję z małymi firmami, startupami i agencjami. Każdy projekt to indywidualne rozwiązanie, a nie szablon.',
+    stat_projects: 'Projektów', stat_exp: 'Lat doświadczenia', stat_clients: 'Klientów', stat_happy: 'Zadowolonych',
+    skills_label: 'Umiejętności',
+    projects_label: 'Projekty', projects_h2: 'Wybrane realizacje', projects_cta: 'Zamów projekt',
+    proj1_title: 'Strona masażu', proj1_desc: 'Nowoczesny landing page dla salonu masażu. Responsywny design, animacje, sekcje usług i formularz rezerwacji.',
+    proj2_title: 'Kancelaria prawna', proj2_desc: 'Strona korporacyjna dla kancelarii prawnej. Elegancki design, blok usług, formularz kontaktowy.',
+    proj3_title: 'Fitness', proj3_desc: 'Landing page dla klubu fitness z ulepszonym UX, nowymi sekcjami i adaptacją mobilną.',
+    proj4_title: 'Twój następny projekt', proj4_desc: 'Gotowy zrealizować Twój projekt — od landing page po pełnoprawną aplikację webową. Napisz!', proj4_cta: 'Twój projekt tutaj',
+    view: 'Zobacz', order: 'Zamów',
+    contact_label: 'Kontakt', contact_h2: 'Masz<br>projekt? <em>Napisz.</em>',
+    contact_sub: 'Odpowiadam w ciągu 24 godzin. Omówimy zadanie i wycenimy bezpłatnie.',
+    c_phone: 'Telefon', c_show_phone: 'Pokaż numer', c_show_ig: 'Pokaż Instagram', c_show_tg: 'Pokaż Telegram',
+    form_label: 'Napisz', form_name: 'Twoje imię', form_msg: 'Wiadomość', form_send: 'Wyślij →',
+    ph_name: 'Jan Kowalski', ph_msg: 'Opowiedz o swoim projekcie...',
+    form_sent: 'Wysłano', footer_top: 'Na górę'
+  }
+};
+
+var currentLang = 'uk';
+
+function applyLang(lang) {
+  currentLang = lang;
+  var d = T[lang];
+  // text nodes
+  document.querySelectorAll('[data-i18n]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n');
+    if (d[key] !== undefined) el.innerHTML = d[key];
+  });
+  // placeholders
+  document.querySelectorAll('[data-i18n-ph]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n-ph');
+    if (d[key] !== undefined) el.placeholder = d[key];
+  });
+  // lang buttons
+  document.querySelectorAll('.lang-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+  });
+  // reset revealed contact buttons
+  document.querySelectorAll('.contact-reveal-btn.revealed').forEach(function(btn) {
+    btn.classList.remove('revealed');
+    var valEl = btn.querySelector('.contact-value');
+    var href = btn.getAttribute('data-href') || '';
+    var labelEl = btn.querySelector('.contact-label');
+    var labelText = labelEl ? labelEl.textContent : '';
+    var iconEl = btn.querySelector('.contact-icon');
+    var origIcon = btn.getAttribute('data-orig-icon') || '';
+    if (iconEl) iconEl.textContent = origIcon;
+    // restore show text
+    if (valEl) {
+      if (href.startsWith('tel:')) valEl.setAttribute('data-i18n','c_show_phone');
+      else if (href.includes('instagram')) valEl.setAttribute('data-i18n','c_show_ig');
+      else if (href.includes('t.me')) valEl.setAttribute('data-i18n','c_show_tg');
+      valEl.textContent = d[valEl.getAttribute('data-i18n')] || valEl.textContent;
+    }
+    var arrow = btn.querySelector('.reveal-arrow');
+    if (arrow) arrow.style.display = '';
+  });
+  document.documentElement.lang = lang;
+}
+
+// lang switcher
+document.querySelectorAll('.lang-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    applyLang(btn.getAttribute('data-lang'));
+  });
+});
+
+// store original icon + href on contact buttons
+document.querySelectorAll('.contact-reveal-btn').forEach(function(btn) {
+  var iconEl = btn.querySelector('.contact-icon');
+  if (iconEl) btn.setAttribute('data-orig-icon', iconEl.textContent);
+  // extract href from onclick
+  var oc = btn.getAttribute('onclick') || '';
+  var m = oc.match(/'([^']+)'/);
+  if (m) btn.setAttribute('data-href', m[1]);
+});
+
+// cursor
+var cur = document.getElementById('cursor');
+var ring = document.getElementById('cursorRing');
+var mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',function(e){
+  mx=e.clientX; my=e.clientY;
+  cur.style.left=mx+'px'; cur.style.top=my+'px';
+});
+(function animRing(){
+  rx+=(mx-rx)*.12; ry+=(my-ry)*.12;
+  ring.style.left=rx+'px'; ring.style.top=ry+'px';
+  requestAnimationFrame(animRing);
+})();
+
+// nav scroll
+var nav=document.getElementById('nav');
+window.addEventListener('scroll',function(){nav.classList.toggle('scrolled',window.scrollY>40);});
+
+// reveal
+var observer=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(function(el){observer.observe(el);});
+
+// skill bars
+var skillObs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting)e.target.querySelectorAll('.skill-fill').forEach(function(bar){bar.style.width=bar.getAttribute('data-width')+'%';});});},{threshold:.2});
+var as=document.querySelector('.about');if(as)skillObs.observe(as);
+
+// contact reveal
+function revealContact(btn,href,value,icon){
+  if(btn.classList.contains('revealed')){window.open(href,'_blank');return;}
+  btn.classList.add('revealed');
+  btn.querySelector('.contact-value').textContent=value;
+  btn.querySelector('.contact-icon').textContent=icon;
+  var arrow=btn.querySelector('.reveal-arrow');
+  if(arrow) arrow.style.display='none';
+  btn.onclick=function(){window.open(href,'_blank');};
+}
+
+// form
+function handleSubmit(e){
+  e.preventDefault();
+  var btn=document.getElementById('submitBtn');
+  btn.textContent=T[currentLang].form_sent+' ✓';
+  btn.style.background='#4cff72';
+  setTimeout(function(){btn.textContent=T[currentLang].form_send;btn.style.background='';},3000);
+}
+</script>
+</body>
+</html>
